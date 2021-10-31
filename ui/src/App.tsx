@@ -1,59 +1,28 @@
-import React from 'react'
-import {Blocks} from './lib/code-builder/block-types'
+import {useEffect, useReducer} from 'react'
+import {LeftSidePanel} from './components/left-side-panel/left-side-panel'
+import styled from 'styled-components'
 import {codeBuilder} from './lib/code-builder/code-builder'
+import {blocksReducer, blocksInitialState} from './lib/state'
 
-const blocks: Blocks = {
-  start: {
-    type: 'function',
-    root: true,
-    next: 'uniq',
-    previous: ''
-  },
+const AppContainer = styled.div`
+  display: grid;
+  grid-template-areas: 'left-side-panel board';
+  grid-template-columns: 300px 1fr;
+  grid-gap: 0px;
+  height: 100vh;
+`
 
-  uniq: {
-    type: 'if',
-    operatorKey: 'uniqOperatorKey',
-
-    children: ['uniqLogBlock'],
-    previous: 'start',
-    next: ''
-  },
-
-  uniqOperatorKey: {
-    type: 'larger-than',
-    valueOneRef: 'uniqVariable2',
-    valueTwoRef: 'uniqVariable',
-    previous: '',
-    next: ''
-  },
-
-  uniqVariable: {
-    type: 'variable',
-    userCreated: true,
-    variableType: 'number',
-    value: '10',
-    previous: '',
-    next: ''
-  },
-
-  uniqVariable2: {
-    type: 'variable',
-    userCreated: false,
-    variableType: 'number',
-    value: '20',
-    previous: '',
-    next: ''
-  },
-
-  uniqLogBlock: {
-    type: 'log',
-    value: "'Hello World!'",
-    previous: '',
-    next: ''
-  }
-}
-
-codeBuilder(blocks)
 export function App() {
-  return <div>Hej</div>
+  const [state, dispatch] = useReducer(blocksReducer, blocksInitialState)
+
+  useEffect(() => {
+    codeBuilder(state)
+  }, [state])
+
+  return (
+    <AppContainer>
+      <LeftSidePanel blocks={state} dispatch={dispatch} />
+      <div>board</div>
+    </AppContainer>
+  )
 }

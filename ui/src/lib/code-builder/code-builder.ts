@@ -96,6 +96,12 @@ function createFunction(
 }
 
 export async function codeBuilder(blocks: Blocks) {
+  const blocksArray = Object.entries(blocks)
+
+  /*   if (blocksArray.length === 0) {
+    return
+  } */
+
   const fileName = 'file.ts'
   const project = new Project({
     useInMemoryFileSystem: true,
@@ -106,20 +112,20 @@ export async function codeBuilder(blocks: Blocks) {
   const fs = project.getFileSystem()
   const file = project.createSourceFile(fileName, '')
 
-  const blocksArray = Object.entries(blocks)
-
   const allVariables = blocksArray.filter(
     ([_, value]) => value.type === 'variable'
   ) as Array<[string, VariableBlock]>
 
-  file.addVariableStatement({
-    declarationKind: VariableDeclarationKind.Let,
-    declarations: allVariables.map(([key, data]) => ({
-      name: key,
-      type: data.variableType,
-      initializer: data.value
-    }))
-  })
+  if (allVariables.length > 0) {
+    file.addVariableStatement({
+      declarationKind: VariableDeclarationKind.Let,
+      declarations: allVariables.map(([key, data]) => ({
+        name: key,
+        type: data.variableType,
+        initializer: data.value
+      }))
+    })
+  }
 
   const allFunctions = blocksArray.filter(
     ([_, value]) => value.type === 'function'
@@ -135,8 +141,8 @@ export async function codeBuilder(blocks: Blocks) {
     }
   })
 
-  file.saveSync()
-  const content = fs.readFileSync(fileName)
+  await file.save()
+  const content = await fs.readFile(fileName)
   console.log(content)
 
   const result = project.emitToMemory()
